@@ -72,10 +72,10 @@
     });
 }).call(this);}, "crumb_trail": function(exports, require, module) {(function() {
     var self = this;
-    exports.crumbTrail = function(path) {
+    exports.crumbTrail = function(location) {
         var self = this;
-        var matches, host, crumbs, parts, url, gen1_items, gen2_i, part;
-        matches = /^\/(https?\:\/\/([^\/]+))?(.*)$/.exec(path);
+        var matches, host, path, crumbs, parts, url, gen1_items, gen2_i, part;
+        matches = /^\/(https?\:\/\/([^\/]+))?(.*)$/.exec(location);
         host = matches[1];
         path = matches[3];
         crumbs = [];
@@ -85,11 +85,11 @@
                 text: window.location.protocol + "//" + window.location.host,
                 href: "/"
             });
-            url = [ "" ];
+            url = [];
         } else {
             crumbs.push({
                 text: host,
-                href: host
+                href: "#/" + host
             });
             url = [ host ];
             parts.shift();
@@ -101,7 +101,7 @@
                 url.push(part);
                 crumbs.push({
                     text: part,
-                    href: url.join("/")
+                    href: "#/" + url.join("/")
                 });
             }
         }
@@ -148,7 +148,7 @@
             }
         } else {
             text = $(xmlNode).text();
-            if (text.length > 0) {
+            if (text.trim().length > 0) {
                 return container.append($(xmlNode).text());
             }
         }
@@ -165,7 +165,9 @@
     var self = this;
     var crumbTrail, headers;
     crumbTrail = require("./crumb_trail").crumbTrail;
-    headers = {};
+    headers = {
+        "X-Requested-With": "rest-browser"
+    };
     exports.RootController = function($scope, $http, $location) {
         var self = this;
         var segments;

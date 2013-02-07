@@ -38,7 +38,7 @@ exports.render xml (xml node, element, indent) =
 
 (n) spaces =
     indent string = ""
-    for (i = 0, i < (n * 4), i = i + 1)
-        indent string = indent string + "&nbsp;"
+    for (i = 0, i < (n * 4), i := i + 1)
+        indent string := indent string + "&nbsp;"
     
     indent string

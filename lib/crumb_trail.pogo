@@ -1,6 +1,6 @@
-exports.crumb trail (path) =
+exports.crumb trail (location) =
     
-    matches = r/^\/(https?\:\/\/([^\/]+))?(.*)$/.exec (path)
+    matches = r/^\/(https?\:\/\/([^\/]+))?(.*)$/.exec (location)
     host = matches.1
     path = matches.3
     
@@ -15,7 +15,7 @@ exports.crumb trail (path) =
         url = []
     else
         crumbs.push { text = host, href = '#/' + host }
-        url = [host]
+        url := [host]
         parts.shift()
     
     if (path.length > 1)
