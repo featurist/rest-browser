@@ -8,6 +8,8 @@ public = __dirname + '/../../public'
 
 app.use(express.static(public))
 
-app.listen 3001
+port = 3001
 
-console.log "http://127.0.0.1:80 -> cats api / public (#(public))"
+app.listen (port)
+
+console.log "http://127.0.0.1:#(port) -> cats api / public (#(public))"
