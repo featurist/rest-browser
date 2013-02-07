@@ -1,0 +1,27 @@
+{
+  "name": "rest-browser",
+  "version": "0.0.0",
+  "description": "browser client for rest APIs",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+
+  },
+  "devDependencies": {
+      "connect": "~2.7.2",
+      "should": "~1.2.1",
+      "mocha": "~1.8.1",
+      "pogo": "~0.3.0",
+      "zombie": "~1.4.1",
+      "express": "~3.1.0",
+      "stitchy": "0.0.2"
+  },
+  "scripts": {
+    "test": "mocha spec/*_spec.pogo"
+  },
+  "repository": "",
+  "author": "",
+  "license": "BSD"
+}
