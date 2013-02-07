@@ -16,7 +16,7 @@
       "pogo": "~0.3.0",
       "zombie": "~1.4.1",
       "express": "~3.1.0",
-      "stitchy": "0.0.2"
+      "stitchy": "0.0.3"
   },
   "scripts": {
     "test": "mocha spec/*_spec.pogo"
