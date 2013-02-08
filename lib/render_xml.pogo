@@ -1,10 +1,11 @@
 localhost root = 'http://localhost/Euromoney.Isis.Api/'
 
 exports.render xml (xml node, element, indent) =
+
     container = $("<div />").append to (element)
     container.append ((indent) spaces)
 
-    if (xml node.tag name)
+    if (xml node.node type == 1)
         container.append "&lt;"
         container.append "<span class='tagname'>#(xml node.tag name)</span>"
     
@@ -32,8 +33,9 @@ exports.render xml (xml node, element, indent) =
         else
             container.append (" /&gt;")
     else
+        console.log "text" (xml node)
         text = $(xml node).text()
-        if (text.trim().length > 0)
+        if (text.replace("\n", "").trim().length > 0)
             container.append ($(xml node).text())
 
 (n) spaces =

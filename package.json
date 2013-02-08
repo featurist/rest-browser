@@ -10,13 +10,13 @@
 
   },
   "devDependencies": {
-      "connect": "~2.7.2",
-      "should": "~1.2.1",
-      "mocha": "~1.8.1",
-      "pogo": "~0.3.0",
-      "zombie": "~1.4.1",
-      "express": "~3.1.0",
-      "stitchy": "0.0.3"
+    "phantom": "~0.4.1"
+    "connect": "~2.7.2",
+    "should": "~1.2.1",
+    "mocha": "~1.8.1",
+    "pogo": "~0.3.0",
+    "express": "~3.1.0",
+    "stitchy": "0.0.4"
   },
   "scripts": {
     "test": "mocha spec/*_spec.pogo"

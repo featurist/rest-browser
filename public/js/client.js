@@ -75,37 +75,45 @@
     exports.crumbTrail = function(location) {
         var self = this;
         var matches, host, path, crumbs, parts, url, gen1_items, gen2_i, part;
+        console.log("location", location);
         matches = /^\/(https?\:\/\/([^\/]+))?(.*)$/.exec(location);
-        host = matches[1];
-        path = matches[3];
-        crumbs = [];
-        parts = path.split("/");
-        if (typeof host === "undefined") {
-            crumbs.push({
+        if (matches) {
+            host = matches[1];
+            path = matches[3];
+            crumbs = [];
+            parts = path.split("/");
+            if (typeof host === "undefined") {
+                crumbs.push({
+                    text: window.location.protocol + "//" + window.location.host,
+                    href: "/"
+                });
+                url = [];
+            } else {
+                crumbs.push({
+                    text: host,
+                    href: "#/" + host
+                });
+                url = [ host ];
+                parts.shift();
+            }
+            if (path.length > 1) {
+                gen1_items = parts;
+                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+                    part = gen1_items[gen2_i];
+                    url.push(part);
+                    crumbs.push({
+                        text: part,
+                        href: "#/" + url.join("/")
+                    });
+                }
+            }
+            return crumbs;
+        } else {
+            return [ {
                 text: window.location.protocol + "//" + window.location.host,
                 href: "/"
-            });
-            url = [];
-        } else {
-            crumbs.push({
-                text: host,
-                href: "#/" + host
-            });
-            url = [ host ];
-            parts.shift();
+            } ];
         }
-        if (path.length > 1) {
-            gen1_items = parts;
-            for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                part = gen1_items[gen2_i];
-                url.push(part);
-                crumbs.push({
-                    text: part,
-                    href: "#/" + url.join("/")
-                });
-            }
-        }
-        return crumbs;
     };
 }).call(this);}, "render_xml": function(exports, require, module) {(function() {
     var self = this;
@@ -116,7 +124,7 @@
         var container, gen1_items, gen2_i, att, href, gen3_items, gen4_i, childNode, text;
         container = $("<div />").appendTo(element);
         container.append(spaces(indent));
-        if (xmlNode.tagName) {
+        if (xmlNode.nodeType === 1) {
             container.append("&lt;");
             container.append("<span class='tagname'>" + xmlNode.tagName + "</span>");
             gen1_items = xmlNode.attributes;
@@ -147,8 +155,9 @@
                 return container.append(" /&gt;");
             }
         } else {
+            console.log("text", xmlNode);
             text = $(xmlNode).text();
-            if (text.trim().length > 0) {
+            if (text.replace("\n", "").trim().length > 0) {
                 return container.append($(xmlNode).text());
             }
         }
@@ -170,20 +179,21 @@
     };
     exports.RootController = function($scope, $http, $location) {
         var self = this;
-        var segments;
-        segments = [];
+        var url, ajax;
         $scope.trail = crumbTrail($location.$$path);
-        return $.ajax({
-            url: $location.$$path.substring(1),
+        url = $location.$$path.substring(1) || window.location.protocol + "//" + window.location.host;
+        return ajax = $.ajax({
+            url: url,
             type: "GET",
             crossDomain: true,
             headers: headers,
             dataType: "xml"
         }).done(function(xml) {
+            $("body").append("<div>HTTP DONE</div>");
             $scope.xml = xml.firstChild;
             return $scope.$digest();
         }).error(function(err) {
-            $scope.httpError = err.status + " " + err.statusText;
+            $scope.httpError = "Non XML response";
             return $scope.$digest();
         });
     };
