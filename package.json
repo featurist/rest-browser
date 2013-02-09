@@ -10,7 +10,6 @@
   },
   "devDependencies": {
     "phantom": "~0.4.1",
-    "connect": "~2.7.2",
     "should": "~1.2.1",
     "mocha": "~1.8.1",
     "pogo": "~0.3.0",
