@@ -2,11 +2,13 @@ crumb trail = require './crumb_trail'.crumb trail
 
 headers = { 'X-Requested-With' = 'rest-browser' }
 
-exports.Root Controller ($scope, $http, $location) =
+exports.Controller ($scope, $http, $location) =
 
-    $scope.trail = crumb trail ($location.$$path)
+    url = $location.$$path.substring(1)
+    if (url.index of 'http' != 0)
+        url := (window.location.protocol + '//' + window.location.host) + '/' + url
     
-    url = $location.$$path.substring(1) || (window.location.protocol + '//' + window.location.host)
+    $scope.trail = crumb trail (url)
     
     ajax = $.ajax {
         url = url
@@ -15,8 +17,7 @@ exports.Root Controller ($scope, $http, $location) =
         headers = headers
         data type = 'xml'
     }.done @(xml)
-        $('body').append("<div>HTTP DONE</div>")
-        $scope.xml = xml.first child
+        $scope.doc = { root = xml.first child, url = url }
         $scope.$digest()
     .error @(err)
         $scope.httpError = "Non XML response"

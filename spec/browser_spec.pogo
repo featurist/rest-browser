@@ -7,23 +7,60 @@ describe 'the rest browser'
     browser = nil
     page = nil
     
-    before each @(ready)
+    before @(ready)
         server := cats api server.listen 3001
         phantom.create @(b)
             browser := b
-            browser.create page @(p)
-                page := p
-                ready()
+            ready()
     
-    after each @(done)
+    after @(done)
         browser.exit()
-        console.log (Object.keys(server))
         server.close()
-        done()
+        done()        
+        
+    open (url, opened) = 
+        browser.create page @(p)
+            p.open (url) @(status)
+                status.should.equal 'success'
+                opened(p)
     
-    it 'renders XML as HTML' @(done)
-        page.open "http://localhost:3001/#/http://127.0.0.1:3001/cats" @(status)
-            page.evaluate @{ $($('#xml').text()).0.tag name.to lower case() } @(result)
-                result.should.equal "cats"
+    links in (url, found) =
+        open (url) @(page)
+            page.evaluate @{ $("#doc a").map @{ $(this).attr('href') }.get() } @(hrefs)
+                found (hrefs)
+        
+    it 'renders XML as HTML (same origin)' @(done)
+        open "http://localhost:3001/#/cats" @(page)
+            page.evaluate @{ $('#doc').text() } @(result)
+                result.should.match r/\<cats/
                 done()
-                
+    
+    it 'renders XML as HTML (cross origin)' @(done)
+        open "http://localhost:3001/#/http://127.0.0.1:3001/cats" @(page)
+            page.evaluate @{ $('#doc').text() } @(result)
+                result.should.match r/\<cats/
+                done()
+    
+    it 'renders relative links (same origin)' @(done)
+        links in "http://localhost:3001/#/cats" @(links)
+            links.should.eql [
+                '#/'
+                '#/cats/meg'
+                '#/cats/meg/'
+                '#/cats/meg'
+                '#/http://127.0.0.1:3001/cats/mog'
+                '#/cats/mog'
+            ]
+            done()
+    
+    it 'renders relative links (cross origin)' @(done)
+        links in "http://localhost:3001/#/http://127.0.0.1:3001/cats" @(links)
+            links.should.eql [
+                '#/http://127.0.0.1:3001/'
+                '#/http://127.0.0.1:3001/cats/meg'
+                '#/http://127.0.0.1:3001/cats/meg/'
+                '#/http://127.0.0.1:3001/cats/meg'
+                '#/http://127.0.0.1:3001/cats/mog'
+                '#/cats/mog'
+            ]
+            done()

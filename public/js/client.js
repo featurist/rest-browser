@@ -50,117 +50,173 @@
   return this.require.define;
 }).call(this)({"client": function(exports, require, module) {(function() {
     var self = this;
-    var renderXml, RootController, client;
-    renderXml = require("./render_xml").renderXml;
-    RootController = require("./root_controller").RootController;
+    var renderDoc, Controller, client;
+    renderDoc = require("./render_xml").renderDoc;
+    Controller = require("./controller").Controller;
     client = angular.module("client", []).config(function($routeProvider) {
         return $routeProvider.otherwise({
-            controller: RootController,
+            controller: Controller,
             templateUrl: "templates/root.html"
         });
     });
-    client.directive("xelement", function() {
+    client.directive("doc", function() {
         var link;
         link = function(scope, element, attrs) {
-            return scope.$watch(attrs.xelement, function(xmlNode) {
-                if (xmlNode) {
-                    return renderXml(xmlNode, element, 0);
+            return scope.$watch(attrs.doc, function(doc) {
+                if (doc) {
+                    return renderDoc(doc, element);
                 }
             });
         };
         return link;
     });
+}).call(this);}, "controller": function(exports, require, module) {(function() {
+    var self = this;
+    var crumbTrail, headers;
+    crumbTrail = require("./crumb_trail").crumbTrail;
+    headers = {
+        "X-Requested-With": "rest-browser"
+    };
+    exports.Controller = function($scope, $http, $location) {
+        var self = this;
+        var url, ajax;
+        url = $location.$$path.substring(1);
+        if (url.indexOf("http") !== 0) {
+            url = window.location.protocol + "//" + window.location.host + "/" + url;
+        }
+        $scope.trail = crumbTrail(url);
+        return ajax = $.ajax({
+            url: url,
+            type: "GET",
+            crossDomain: true,
+            headers: headers,
+            dataType: "xml"
+        }).done(function(xml) {
+            $scope.doc = {
+                root: xml.firstChild,
+                url: url
+            };
+            return $scope.$digest();
+        }).error(function(err) {
+            $scope.httpError = "Non XML response";
+            return $scope.$digest();
+        });
+    };
 }).call(this);}, "crumb_trail": function(exports, require, module) {(function() {
     var self = this;
-    exports.crumbTrail = function(location) {
+    exports.crumbTrail = function(absoluteUrl) {
         var self = this;
-        var matches, host, path, crumbs, parts, url, gen1_items, gen2_i, part;
-        console.log("location", location);
-        matches = /^\/(https?\:\/\/([^\/]+))?(.*)$/.exec(location);
-        if (matches) {
-            host = matches[1];
-            path = matches[3];
-            crumbs = [];
-            parts = path.split("/");
-            if (typeof host === "undefined") {
-                crumbs.push({
-                    text: window.location.protocol + "//" + window.location.host,
-                    href: "/"
-                });
-                url = [];
-            } else {
-                crumbs.push({
-                    text: host,
-                    href: "#/" + host
-                });
-                url = [ host ];
-                parts.shift();
-            }
-            if (path.length > 1) {
-                gen1_items = parts;
-                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                    part = gen1_items[gen2_i];
-                    url.push(part);
-                    crumbs.push({
-                        text: part,
-                        href: "#/" + url.join("/")
-                    });
-                }
-            }
-            return crumbs;
-        } else {
-            return [ {
-                text: window.location.protocol + "//" + window.location.host,
-                href: "/"
-            } ];
+        var matches, authority, host, path, crumbs, parts, url, gen1_items, gen2_i, part, href;
+        matches = /^(https?\:\/\/([^\/]+))?(.*)$/.exec(absoluteUrl);
+        if (!matches) {
+            throw new Error("Expected absolute URL, got " + absoluteUrl);
         }
+        authority = window.location.protocol + "//" + window.location.host;
+        host = matches[1];
+        path = matches[3];
+        crumbs = [];
+        parts = path.replace(/^\//, "").replace(/\/$/, "").split("/");
+        crumbs.push({
+            text: host,
+            href: "#/" + host.replace(authority, "")
+        });
+        url = [ host ];
+        if (path.length > 1) {
+            gen1_items = parts;
+            for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+                part = gen1_items[gen2_i];
+                url.push(part);
+                href = url.join("/").replace(authority, "").replace(/^\/+/, "");
+                crumbs.push({
+                    text: part,
+                    href: "#/" + href
+                });
+            }
+        }
+        return crumbs;
     };
+}).call(this);}, "location": function(exports, require, module) {(function() {
+    var self = this;
+    var Location;
+    Location = function(url) {
+        var matches;
+        matches = /^((https?)\:\/\/([^\/]+))?(.*)$/.exec(url);
+        this.protocol = matches[2] || false;
+        this.hostAndPort = matches[3] || false;
+        this.pathAndQuery = matches[4];
+        return this;
+    };
+    Location.prototype.combine = function(host, url) {
+        var self = this;
+        return url;
+    };
+    exports.Location = Location;
 }).call(this);}, "render_xml": function(exports, require, module) {(function() {
     var self = this;
-    var localhostRoot, spaces;
-    localhostRoot = "http://localhost/Euromoney.Isis.Api/";
-    exports.renderXml = function(xmlNode, element, indent) {
+    var urls, renderNode, renderAttribute, asHrefRelativeTo, isWhitespace, spaces;
+    urls = require("./urls");
+    exports.renderDoc = function(doc, element) {
         var self = this;
-        var container, gen1_items, gen2_i, att, href, gen3_items, gen4_i, childNode, text;
-        container = $("<div />").appendTo(element);
-        container.append(spaces(indent));
+        var html;
+        html = renderNode(doc.url, doc.root, 0);
+        return $(element).html(html);
+    };
+    renderNode = function(url, xmlNode, indent) {
+        var str, gen1_items, gen2_i, att, gen3_items, gen4_i, childNode, text;
+        if (isWhitespace(xmlNode)) {
+            return "";
+        }
+        str = "<div class='xmlnode nodetype-" + xmlNode.nodeType + "'>";
+        str = str + spaces(indent);
         if (xmlNode.nodeType === 1) {
-            container.append("&lt;");
-            container.append("<span class='tagname'>" + xmlNode.tagName + "</span>");
+            str = str + "&lt;";
+            str = str + ("<span class='tagname'>" + xmlNode.tagName + "</span>");
             gen1_items = xmlNode.attributes;
             for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
                 att = gen1_items[gen2_i];
-                container.append(" ");
-                container.append("<span class='attname'>" + att.name + "</span>");
-                container.append('="');
-                if (att.name === "href") {
-                    href = "#/" + att.value.replace(localhostRoot, "");
-                    container.append("<a href='" + href + "' class='attvalue'>" + att.value + "</a>");
-                } else {
-                    container.append("<span class='attvalue'>" + att.value + "</span>");
-                }
-                container.append('"');
+                str = str + renderAttribute(att, url);
             }
             if (xmlNode.childNodes.length > 0) {
-                container.append(">");
-                container.append("<br />");
+                str = str + "/&gt;";
+                str = str + "<br />";
                 gen3_items = xmlNode.childNodes;
                 for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
                     childNode = gen3_items[gen4_i];
-                    exports.renderXml(childNode, container, indent + 1);
+                    str = str + renderNode(url, childNode, indent + 1);
                 }
-                container.append(spaces(indent));
-                return container.append("&lt;/<span class='tagname'>" + xmlNode.tagName + "</span>&gt;");
+                str = str + spaces(indent);
+                str = str + ("&lt;/<span class='tagname'>" + xmlNode.tagName + "</span>&gt;");
             } else {
-                return container.append(" /&gt;");
+                str = str + " /&gt;";
             }
         } else {
-            console.log("text", xmlNode);
             text = $(xmlNode).text();
-            if (text.replace("\n", "").trim().length > 0) {
-                return container.append($(xmlNode).text());
+            if (!text.match(/^[\n\s]+$/g)) {
+                str = str + text;
             }
         }
+        str = str + "</div>";
+        return str;
+    };
+    renderAttribute = function(att, url) {
+        var str, href;
+        str = " <span class='attname'>" + att.name + "</span>=" + '"';
+        if (att.name === "href" || /^(https?|\/|\.\.)/.exec(att.value)) {
+            href = asHrefRelativeTo(att.value, url);
+            str = str + ("<a href='" + href + "' class='attvalue'>" + att.value + "</a>");
+        } else {
+            str = str + ("<span class='attvalue'>" + att.value + "</span>");
+        }
+        return str + '"';
+    };
+    asHrefRelativeTo = function(string, url) {
+        var absoluteUrl, windowHost;
+        absoluteUrl = urls.makeAbsoluteUrl(url, string);
+        windowHost = window.location.protocol + "//" + window.location.host;
+        return ("#/" + absoluteUrl.replace(windowHost, "")).replace("#//", "#/");
+    };
+    isWhitespace = function(xmlNode) {
+        return xmlNode.nodeType === 3 && $(xmlNode).text().match(/^[\n\s]+$/g);
     };
     spaces = function(n) {
         var indentString, i;
@@ -170,31 +226,10 @@
         }
         return indentString;
     };
-}).call(this);}, "root_controller": function(exports, require, module) {(function() {
+}).call(this);}, "urls": function(exports, require, module) {(function() {
     var self = this;
-    var crumbTrail, headers;
-    crumbTrail = require("./crumb_trail").crumbTrail;
-    headers = {
-        "X-Requested-With": "rest-browser"
-    };
-    exports.RootController = function($scope, $http, $location) {
+    exports.makeAbsoluteUrl = function(base, relative) {
         var self = this;
-        var url, ajax;
-        $scope.trail = crumbTrail($location.$$path);
-        url = $location.$$path.substring(1) || window.location.protocol + "//" + window.location.host;
-        return ajax = $.ajax({
-            url: url,
-            type: "GET",
-            crossDomain: true,
-            headers: headers,
-            dataType: "xml"
-        }).done(function(xml) {
-            $("body").append("<div>HTTP DONE</div>");
-            $scope.xml = xml.firstChild;
-            return $scope.$digest();
-        }).error(function(err) {
-            $scope.httpError = "Non XML response";
-            return $scope.$digest();
-        });
+        return URI(relative).absoluteTo(base).normalizePathname().toString();
     };
 }).call(this);}});

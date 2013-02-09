@@ -23,17 +23,24 @@ ul {
 }
 #trail li {
   display: inline-block;
-  padding: 0 5px 0 0;
   margin: 0;
 }
 #trail li:last-child a {
   text-decoration: none;
   color: black;
 }
-#xml {
-  margin-top: 10px;
+#trail li:first-child .separator {
+    display: none;
 }
-#xml * {
+#trail .separator {
+    margin: 0 3px;
+    padding: 0;
+}
+#doc {
+  margin-top: 10px;
+  color: #444;
+}
+#doc * {
   font-family: Monospace, Consolas, 'Courier New', Courier;
   white-space: nowrap;
 }

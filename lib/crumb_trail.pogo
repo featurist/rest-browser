@@ -1,35 +1,22 @@
-exports.crumb trail (location) =
-    console.log ("location", location)
-    matches = r/^\/(https?\:\/\/([^\/]+))?(.*)$/.exec (location)
+exports.crumb trail (absolute url) =
+    matches = r/^(https?\:\/\/([^\/]+))?(.*)$/.exec (absolute url)
+    if (!matches) @{ throw (@new Error ("Expected absolute URL, got #(absolute url)")) }
     
-    if (matches)
+    authority = window.location.protocol + '//' + window.location.host
     
-        host = matches.1
-        path = matches.3
+    host = matches.1
+    path = matches.3
     
-        crumbs = []
-        parts = path.split '/'
+    crumbs = []
+    parts = path.replace(r/^\//, '').replace(r/\/$/, '').split '/'
     
-        if (typeof (host) == 'undefined')
-            crumbs.push {
-                text = window.location.protocol + '//' + window.location.host
-                href = '/'
-            }
-            url = []
-        else
-            crumbs.push { text = host, href = '#/' + host }
-            url := [host]
-            parts.shift()
+    crumbs.push { text = host, href = '#/' + host.replace (authority, '') }
+    url = [host]
     
-        if (path.length > 1)
-            for each @(part) in (parts)
-                url.push (part)
-                crumbs.push { text = part, href = '#/' + url.join('/') }
+    if (path.length > 1)
+        for each @(part) in (parts)
+            url.push (part)
+            href = url.join('/').replace(authority, '').replace(r/^\/+/, '')
+            crumbs.push { text = part, href = '#/' + href }
     
-        crumbs
-    else
-    
-        [{
-            text = window.location.protocol + '//' + window.location.host
-            href = '/'
-        }]
+    crumbs

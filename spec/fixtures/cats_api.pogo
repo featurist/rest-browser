@@ -18,17 +18,26 @@ exports.mount (app) =
     
     
     get xml  '/'        '<app>
-                             <link href="http://localhost:3000/cats">Cats</link>
+                             <link href="http://localhost:3001/cats">Cats</link>
                          </app>'
     
         
-    get xml '/cats'     '<cats>
-                             <cat name="meg" href="/cats/meg" />
-                             <cat name="mog" href="/cats/mog" />
+    get xml '/cats'     '<cats app="../">
+                             <cat href="/cats/meg" />
+                             <cat href="/cats/meg/" />
+                             <cat href="cats/meg" />
+                             <cat href="http://127.0.0.1:3001/cats/mog" />
+                             <cat href="http://localhost:3001/cats/mog" />
                          </cats>'
     
                  
-    get xml '/cats/meg' '<cat name="meg" />'
+    get xml '/cats/meg' '<cat name="meg">
+                             <family href="../">
+                                 <sibling href="../../cats/mog">Mog</sibling>
+                             </family>
+                        </cat>'
+    
+    get xml '/cats/mog' '<cat family="../" name="mog" />'
 
 
 

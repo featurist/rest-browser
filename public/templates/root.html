@@ -1,9 +1,9 @@
 <ul id="trail">
   <li ng-repeat="crumb in trail">
-    <a href="{{crumb.href}}">{{crumb.text}}</a>
+    <span class="separator">/</span><a href="{{crumb.href}}">{{crumb.text}}</a>
   </li>
 </ul>
 
-<div xelement="xml" id="xml" />
+<div doc="doc" id="doc" />
 
 <div id="error">{{httpError}}</div>

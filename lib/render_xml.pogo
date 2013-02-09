@@ -1,42 +1,58 @@
-localhost root = 'http://localhost/Euromoney.Isis.Api/'
+urls = require './urls'
+window host = window.location.protocol + '//' + window.location.host
 
-exports.render xml (xml node, element, indent) =
-
-    container = $("<div />").append to (element)
-    container.append ((indent) spaces)
+exports.render doc (doc, element) =
+    html = render node (doc.url, doc.root, 0)
+    $(element).html (html)
+    
+render node (url, xml node, indent) =
+    if (is whitespace (xml node))
+        return ''
+    
+    str = "<div class='xmlnode nodetype-#(xml node.node type)'>"
+    str := str + (indent) spaces
 
     if (xml node.node type == 1)
-        container.append "&lt;"
-        container.append "<span class='tagname'>#(xml node.tag name)</span>"
+        str := str + "&lt;"
+        str := str + "<span class='tagname'>#(xml node.tag name)</span>"
     
         for each @(att) in (xml node.attributes)
-            container.append ' '
-            container.append "<span class='attname'>#(att.name)</span>"
-            container.append '="'
-            
-            if (att.name == 'href')
-                href = '#/' + att.value.replace(localhost root, '')
-                container.append ( "<a href='#(href)' class='attvalue'>#(att.value)</a>" )
-            else
-                container.append  "<span class='attvalue'>#(att.value)</span>"
-        
-            container.append ('"')
+            str := str + render attribute (att, url)
     
         if (xml node.child nodes.length > 0)
-            container.append '>'
-            container.append '<br />'
+            str := str + '/&gt;'
+            str := str + '<br />'
             for each @(child node) in (xml node.child nodes)
-                exports.render xml (child node, container, indent + 1)
+                str := str + render node (url, child node, indent + 1)
             
-            container.append ((indent) spaces)
-            container.append "&lt;/<span class='tagname'>#(xml node.tag name)</span>&gt;"
+            str := str + ((indent) spaces)
+            str := str + "&lt;/<span class='tagname'>#(xml node.tag name)</span>&gt;"
         else
-            container.append (" /&gt;")
+            str := str + (" /&gt;")
     else
-        console.log "text" (xml node)
         text = $(xml node).text()
-        if (text.replace("\n", "").trim().length > 0)
-            container.append ($(xml node).text())
+        if (!text.match(r/^[\n\s]+$/g))
+            str := str + (text)
+    
+    str := str + "</div>"
+    str
+
+render attribute (att, url) =
+    str = " <span class='attname'>#(att.name)</span>=" + '"'
+    if ((att.name == 'href') || (r/^(https?|\/|\.\.)/.exec (att.value)))
+        href = (att.value) as href relative to (url)
+        str := str + "<a href='#(href)' class='attvalue'>#(att.value)</a>"
+    else
+        str := str +  "<span class='attvalue'>#(att.value)</span>"
+        
+    str + '"'
+
+(string) as href relative to (url) =
+    absolute url = urls.make absolute url (url, string)
+    ('#/' + absolute url.replace (window host, '')).replace('#//', '#/')
+
+is whitespace (xml node) =
+    xml node.node type == 3 && ($(xml node).text().match(r/^[\n\s]+$/g))
 
 (n) spaces =
     indent string = ""
