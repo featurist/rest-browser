@@ -15,7 +15,7 @@ A browser client for REST APIs, designed to be embedded in the API itself.
 
 ### Don't want to embed the client?
 
-Alternatively, if your API supports (CORS)[http://en.wikipedia.org/wiki/Cross-origin_resource_sharing] then you can host the HTML elsewhere, e.g.
+Alternatively, if your API supports [CORS](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) then you can host the HTML elsewhere, e.g.
 
 ##### Cross-Origin Example
 http://featurist.github.com/rest-browser/#/http://rest-browser-example.herokuapp.com
