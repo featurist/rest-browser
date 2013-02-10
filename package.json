@@ -1,25 +1,29 @@
 {
   "name": "rest-browser",
-  "version": "0.0.0",
-  "description": "browser client for rest APIs",
+  "version": "0.0.1",
+  "description": "browser client for rest APIs, designed to be embedded in the API itself",
+  "author": "@joshski",
   "main": "index.js",
+  "scripts": {
+    "test": "mocha spec/*_spec.pogo"
+  },
   "directories": {
     "test": "test"
   },
   "dependencies": {
   },
   "devDependencies": {
-    "phantom": "~0.4.1",
-    "should": "~1.2.1",
-    "mocha": "~1.8.1",
     "pogo": "~0.3.0",
+    "mocha": "~1.8.1",
+    "should": "~1.2.1",
+    "phantom": "~0.4.1",
     "express": "~3.1.0",
-    "stitchy": "0.0.4"
+    "stitchy": "0.0.4",
+    "squashy": "0.0.1"
   },
-  "scripts": {
-    "test": "mocha spec/*_spec.pogo"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/featurist/rest-browser.git"
   },
-  "repository": "",
-  "author": "",
   "license": "BSD"
 }
