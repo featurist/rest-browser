@@ -56,7 +56,7 @@
     client = angular.module("client", []).config(function($routeProvider) {
         return $routeProvider.otherwise({
             controller: Controller,
-            templateUrl: "templates/root.html"
+            template: '<ul id="trail">\n  <li ng-repeat="crumb in trail">\n    <span class="separator">/</span><a href="{{crumb.href}}">{{crumb.text}}</a>\n  </li>\n</ul>\n\n<div doc="doc" id="doc" />\n\n<div id="error">{{httpError}}</div>'
         });
     });
     client.directive("doc", function() {
@@ -135,26 +135,11 @@
         }
         return crumbs;
     };
-}).call(this);}, "location": function(exports, require, module) {(function() {
-    var self = this;
-    var Location;
-    Location = function(url) {
-        var matches;
-        matches = /^((https?)\:\/\/([^\/]+))?(.*)$/.exec(url);
-        this.protocol = matches[2] || false;
-        this.hostAndPort = matches[3] || false;
-        this.pathAndQuery = matches[4];
-        return this;
-    };
-    Location.prototype.combine = function(host, url) {
-        var self = this;
-        return url;
-    };
-    exports.Location = Location;
 }).call(this);}, "render_xml": function(exports, require, module) {(function() {
     var self = this;
-    var urls, renderNode, renderAttribute, asHrefRelativeTo, isWhitespace, spaces;
+    var urls, windowHost, renderNode, renderAttribute, asHrefRelativeTo, isWhitespace, spaces;
     urls = require("./urls");
+    windowHost = window.location.protocol + "//" + window.location.host;
     exports.renderDoc = function(doc, element) {
         var self = this;
         var html;
@@ -210,9 +195,8 @@
         return str + '"';
     };
     asHrefRelativeTo = function(string, url) {
-        var absoluteUrl, windowHost;
+        var absoluteUrl;
         absoluteUrl = urls.makeAbsoluteUrl(url, string);
-        windowHost = window.location.protocol + "//" + window.location.host;
         return ("#/" + absoluteUrl.replace(windowHost, "")).replace("#//", "#/");
     };
     isWhitespace = function(xmlNode) {
