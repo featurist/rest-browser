@@ -1,7 +1,7 @@
 {
   "name": "rest-browser",
   "version": "0.0.1",
-  "description": "browser client for rest APIs, designed to be embedded in the API itself",
+  "description": "A browser client for REST APIs, designed to be embedded in the API itself",
   "author": "@joshski",
   "main": "index.js",
   "scripts": {
